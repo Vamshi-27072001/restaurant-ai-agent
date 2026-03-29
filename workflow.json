@@ -1,0 +1,266 @@
+{
+  "name": "Taco Bell UK AI Chatbot",
+  "id": "HnKqQq8Dxp4TgIE1",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Welcome to our restaurant! 🍽️\n\nI'm here to help you with:\n• Menu items and recommendations\n• Allergy and dietary information\n• Nutrition details\n• Frequently asked questions\n\nHow can I assist you today?",
+        "options": {
+          "inputPlaceholder": "Ask about our menu, allergies, nutrition...",
+          "loadPreviousSession": "memory",
+          "subtitle": "Your friendly restaurant assistant",
+          "title": "Restaurant AI Assistant"
+        }
+      },
+      "id": "2b5707ea-bffd-4ecd-92f0-0ccc9e3bcc42",
+      "name": "When Chat Message Received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [240, 208],
+      "webhookId": "33ccabfd-1c84-46bd-895d-7d62e5adf804"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [592, 432],
+      "id": "d3d0dbff-2318-45ef-a0ac-68e1d2e21fe6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "807373a8-fa1b-48cb-bef4-a4bc95379759",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [320, 432]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a warm, professional, and exceptionally polite restaurant assistant. Your communication style should be natural, friendly, and well-structured.\n\n**CRITICAL: You MUST use your tools to answer questions**\n• When customers ask about menu items, prices, or dishes → Use the \"Menu Items Tool\"\n• When customers ask about nutrition, calories, allergens, or dietary info → Use the \"Nutrition Information Tool\"\n• NEVER make up menu information - always check the tools first\n\n**Your Responsibilities:**\n\n1. **Provide Accurate Menu Information**\n   • Always use the Menu Items Tool to look up dishes, prices, and availability\n   • Present menu options in a clear, organized format\n   • Highlight popular items and make personalized recommendations\n\n2. **Handle Dietary & Allergy Inquiries with Care**\n   • Use the Nutrition Information Tool for all allergy and nutrition questions\n   • Take allergies very seriously - verify ingredients thoroughly\n   • Suggest safe alternatives when needed\n\n3. **Maintain a Polite, Natural Tone**\n   • Be warm and welcoming, like a helpful friend\n   • Use courteous language: \"I would be delighted to help\", \"Wonderful choice!\", \"May I suggest...\"\n   • Show genuine enthusiasm about the food\n   • Keep responses concise and conversational\n   • Avoid offering numbered menus or multiple choice options\n   • Respond naturally to greetings and casual conversation\n\n4. **Structure Responses Clearly**\n   • Use simple, natural language\n   • Keep responses brief and to the point\n   • Only provide detailed information when specifically asked\n   • Avoid overwhelming customers with too many options at once\n\n5. **Natural Conversation Flow**\n   • For simple greetings like \"hi\" or \"hello\", respond warmly and briefly\n   • Ask one simple question at a time\n   • Let the conversation flow naturally based on customer responses\n   • Do not present formal menus unless the customer asks for menu details\n\nAlways prioritize accuracy, customer safety, and satisfaction. Keep responses friendly, brief, and natural.",
+          "maxIterations": 10,
+          "returnIntermediateSteps": false
+        }
+      },
+      "id": "320b4b9d-9e2e-4355-9946-7a470a542992",
+      "name": "Restaurant AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [656, 208]
+    },
+    {
+      "parameters": {},
+      "id": "b0998e79-246e-47de-97a1-8eae94e53135",
+      "name": "Knowledge Retriever",
+      "type": "@n8n/n8n-nodes-langchain.retrieverVectorStore",
+      "typeVersion": 1,
+      "position": [816, 640]
+    },
+    {
+      "parameters": {
+        "memoryKey": {
+          "__rl": true,
+          "mode": "id",
+          "value": "restaurant_menu_data"
+        }
+      },
+      "id": "c27a8a87-7b05-4875-b05c-fa0e931022a3",
+      "name": "Restaurant Knowledge Base",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [448, 640]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "4c364708-b6e6-4291-9214-88d177ad3598",
+      "name": "OpenAI Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [240, 640],
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "timestamp",        "value": "={{ $now.toISO() }}", "type": "string" },
+            { "id": "2", "name": "sessionId",         "value": "={{ $(\"When Chat Message Received\").item.json.sessionId }}", "type": "string" },
+            { "id": "3", "name": "customerMessage",   "value": "={{ $(\"When Chat Message Received\").item.json.chatInput }}", "type": "string" },
+            { "id": "4", "name": "aiResponse",        "value": "={{ $json.output }}", "type": "string" },
+            { "id": "5", "name": "conversationDate",  "value": "={{ $now.toFormat(\"yyyy-MM-dd\") }}", "type": "string" },
+            { "id": "6", "name": "conversationTime",  "value": "={{ $now.toFormat(\"HH:mm:ss\") }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e0eeb018-d421-4c88-8023-c0195aeb6cce",
+      "name": "Extract Customer Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1056, 320]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "customer respnse"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Data and time":    "={{ $json.timestamp }}",
+            "sessionID":        "={{ $json.sessionId }}",
+            "customer message": "={{ $json.customerMessage }}",
+            "AI response":      "={{ $json.aiResponse }}"
+          },
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "id": "dad5bc0a-0f3b-4f4a-b9cf-c94858595e81",
+      "name": "Save to Customer Interactions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1280, 320],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search the Taco Bell UK menu for all food items including tacos, burritos, sides, and drinks. Use this tool to find menu items, their prices, categories, and dietary suitability such as vegetarian, vegan, or gluten-free options. Always use this tool when a customer asks about any menu item or dietary options like vegetarian tacos.",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_MENU_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "TacoBell_UK_Menu"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "UK Menu Items",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "id": "f6becb8b-6e5f-4368-82e6-8bfff766672e",
+      "name": "Menu Items Tool",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [800, 432],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Look up detailed nutrition information, calories, allergens, and ingredient details for Taco Bell UK menu items. Use this tool when a customer asks about calories, allergens, ingredients, protein, fat, or any specific dietary information about a menu item.",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_MENU_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "TacoBell_UK_Menu"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Nutrition (UK)",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "id": "75461ced-2a63-468e-a38a-9b48aca178b2",
+      "name": "Nutrition Information Tool",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [992, 464],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [[{ "node": "Restaurant AI Agent", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "When Chat Message Received": {
+      "main": [[{ "node": "Restaurant AI Agent", "type": "main", "index": 0 }]]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [{ "node": "When Chat Message Received", "type": "ai_memory", "index": 0 }],
+        [{ "node": "Restaurant AI Agent",        "type": "ai_memory", "index": 0 }]
+      ]
+    },
+    "Restaurant AI Agent": {
+      "main": [[{ "node": "Extract Customer Data", "type": "main", "index": 0 }]]
+    },
+    "Restaurant Knowledge Base": {
+      "ai_vectorStore": [[{ "node": "Knowledge Retriever", "type": "ai_vectorStore", "index": 0 }]]
+    },
+    "OpenAI Embeddings": {
+      "ai_embedding": [[{ "node": "Restaurant Knowledge Base", "type": "ai_embedding", "index": 0 }]]
+    },
+    "Extract Customer Data": {
+      "main": [[{ "node": "Save to Customer Interactions", "type": "main", "index": 0 }]]
+    },
+    "Menu Items Tool": {
+      "ai_tool": [[{ "node": "Restaurant AI Agent", "type": "ai_tool", "index": 0 }]]
+    },
+    "Nutrition Information Tool": {
+      "ai_tool": [[{ "node": "Restaurant AI Agent", "type": "ai_tool", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
