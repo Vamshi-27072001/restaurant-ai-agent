@@ -1,6 +1,6 @@
 {
   "name": "Taco Bell UK AI Chatbot",
-  "id": "HnKqQq8Dxp4TgIE1",
+  "id": "ASSIGNED_BY_N8N_ON_IMPORT",
   "active": false,
   "nodes": [
     {
@@ -19,7 +19,7 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [240, 208],
-      "webhookId": "33ccabfd-1c84-46bd-895d-7d62e5adf804"
+      "webhookId": "ASSIGNED_BY_N8N_ON_IMPORT"
     },
     {
       "parameters": {

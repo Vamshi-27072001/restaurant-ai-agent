@@ -97,7 +97,7 @@ Toggle the **Active** switch in the top-right of the workflow editor.
 
 Once active, the chat widget is available at:
 ```
-https://your-instance.app.n8n.cloud/webhook/33ccabfd-1c84-46bd-895d-7d62e5adf804/chat
+https://your-instance.app.n8n.cloud/webhook/YOUR_WEBHOOK_ID/chat
 ```
 
 You can embed it in any website using an `<iframe>`.
