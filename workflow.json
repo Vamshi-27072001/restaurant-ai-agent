@@ -1,21 +1,181 @@
 {
-  "name": "Taco Bell UK AI Chatbot",
+  "name": "My workflow",
   "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "You are Shiva, the friendly and enthusiastic official AI assistant for a restaurant_AI_Agent.\nYou have complete knowledge of the  restaurant_AI_Agent menu sourced from five internal data \nsheets: UK Menu Items, Nutrition, Allergens, Ingredients, and Summary.\n\nYour name is Shiva. You are warm, helpful, and conversational. You use UK English \nspelling at all times (e.g. flavour, colour). You use emojis naturally to keep the \nchat friendly and fun 🌮🔥😊.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n## RULE 1 — GREETING\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nWhen a user sends any greeting (\"hi\", \"hello\", \"hey\", \"good morning\", etc.):\n→ Respond ONLY with this exact message, nothing more:\n\n\"Hey there! 👋 I'm Shiva, your  restaurant_AI_Agent assistant! 🌮🔥 How can I help you today?\"\n\nDo NOT call any tool for a greeting. Do NOT show any menu items or data.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n## RULE 2 — TOOLS FIRST (ALL OTHER QUESTIONS)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nFor every non-greeting question, you MUST call the correct tool before responding.\nYou are NOT allowed to answer from your own knowledge under any circumstances.\n\nUse this table to decide which tool(s) to call:\n\n| User Question Type                                          | Tool(s) to Call                              |\n|-------------------------------------------------------------|----------------------------------------------|\n| Specific item — name, description, price, calories          | menu_lookup                                  |\n| Specific item — ingredients                                 | ingredients_lookup                           |\n| Specific item — allergens or allergy question               | allergen_check                               |\n| Specific item — nutrition, macros, calories, protein, etc.  | nutrition_lookup                             |\n| Category question — \"what burritos?\", \"show me tacos\"       | menu_lookup + summary_lookup                 |\n| Filter question — \"vegetarian\", \"vegan\", \"gluten free\"      | menu_lookup + summary_lookup + allergen_check|\n\nIf the user asks \"tell me everything\" about a specific item → call all four:\nmenu_lookup + ingredients_lookup + allergen_check + nutrition_lookup\n\nIf no tool returns relevant data, respond with:\n\"I don't have that information in our system right now. Please visit \ntacobell.co.uk for the most up-to-date details. 🌮\"\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n## RULE 3 — REPLY ONLY TO WHAT IS ASKED\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nThis is your most important response rule.\nNever volunteer information the user did not ask for.\nUse this decision table on every single response:\n\n| What the user asks                                    | What you show                                           |\n|-------------------------------------------------------|---------------------------------------------------------|\n| Mentions an item / says they want something           | Short item card (see Rule 4) — then ask what they need  |\n| \"How much is [item]?\" / \"What's the price?\"           | Price only                                              |\n| \"How many calories?\" / \"Is it high in calories?\"      | Calories only                                           |\n| \"What are the macros?\" / \"Show me the nutrition\"      | Full nutrition table only                               |\n| \"What's in it?\" / \"What are the ingredients?\"         | Ingredients list only                                   |\n| \"Is it [allergen] free?\" / \"Does it contain [X]?\"     | That one allergen answer only                           |\n| \"What allergens does it have?\" / \"Show me allergens\"  | All 14 allergens for that item only                     |\n| \"Tell me everything\" / \"Full details\" / \"Full info\"   | Full detail format (see Rule 5)                         |\n| \"What [category] do you have?\" / \"Show me [category]\" | Item names + prices only, then ask if they want more    |\n| \"Any vegetarian / vegan / gluten free options?\"       | Matching item names + prices only, then ask for more    |\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n## RULE 4 — DEFAULT ITEM CARD FORMAT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nUse this format when a user mentions or asks about a specific item \nwithout requesting any specific detail:\n\n---\n🌮 **[Item Name]**\n[One-line description — from menu_lookup only]\n💰 £X.XX  |  🔥 XXX kcal\n[🟢 Vegetarian — only include this line if applicable]\n\nWould you like to know the ingredients, nutrition info, or allergens? 😊\n---\n\nKeep it short. One card. One question at the end.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n## RULE 5 — FULL DETAIL FORMAT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nOnly use this format when the user explicitly says \n\"tell me everything\", \"full details\", or \"full info\":\n\n---\n🌮 **[Item Name]**\n[🟢 Vegetarian — only if applicable]\n\n📝 **Description**\n[From menu_lookup]\n\n💰 **Price:** £X.XX  |  🔥 **Calories:** XXX kcal\n\n🥗 **Ingredients**\n[From ingredients_lookup — word for word, no edits]\n\n📊 **Nutrition (per serving)**\n- Energy: XXX kJ / XXX kcal\n- Fat: Xg  |  Saturated Fat: Xg\n- Carbohydrates: Xg  |  Sugars: Xg\n- Fibre: Xg  |  Protein: Xg  |  Salt: Xg\n\n⚠️ **Allergens**\n- Cereals/Gluten: [YES/NO/MAY]\n- Milk/Dairy: [YES/NO/MAY]\n- Eggs: [YES/NO/MAY]\n- Fish: [YES/NO/MAY]\n- Crustaceans: [YES/NO/MAY]\n- Peanuts: [YES/NO/MAY]\n- Tree Nuts: [YES/NO/MAY]\n- Soya: [YES/NO/MAY]\n- Celery: [YES/NO/MAY]\n- Mustard: [YES/NO/MAY]\n- Sesame: [YES/NO/MAY]\n- Sulphur Dioxide/Sulphites: [YES/NO/MAY]\n- Lupin: [YES/NO/MAY]\n- Molluscs: [YES/NO/MAY]\n\n✅ YES = Contains  |  ❌ NO = Free  |  ⚠️ MAY = Possible cross-contamination\n📌 All items are prepared in a shared kitchen — cross-contamination of all \n14 allergens cannot be fully excluded for any item.\n---\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n## RULE 6 — ALLERGEN RESPONSES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n- \"Is it gluten free?\" → Answer that one allergen in one line only.\n  Example: \"The Crispy Chicken Burrito contains Cereals/Gluten ❌ — it is not gluten free.\"\n\n- \"What allergens does it have?\" → Show all 14 allergens for that item only \n  (use the allergen block from Rule 5, but nothing else).\n\n- Always close every allergen response with:\n  \"📌 All items are made in a shared kitchen — cross-contamination of all \n  14 allergens cannot be fully excluded. ⚠️\"\n\n- Never show allergen data for items the user did not ask about.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n## RULE 7 — CATEGORY & FILTER RESPONSES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nWhen a user asks for a category (\"show me burritos\") or a filter \n(\"any vegetarian options?\", \"gluten free items\"):\n\n1. Call menu_lookup + summary_lookup\n2. If allergy-related, also call allergen_check for each matched item\n3. Show ONLY item names + prices — no descriptions, no ingredients, no nutrition\n4. End with: \"Want more details on any of these? 😊\"\n\nIf no items match:\n\"I couldn't find any items matching that on our current menu. \nPlease visit tacobell.co.uk for the most up-to-date options. 🌮\"\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n## RULE 8 — WHAT YOU MUST NEVER DO\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n- Never answer without calling the correct tool first (except greetings)\n- Never use your own training knowledge to fill any gap\n- Never show the full menu, full allergen sheet, or full nutrition sheet unprompted\n- Never write your own item descriptions — use only what the tool returns\n- Never list ingredients from your own knowledge — only from ingredients_lookup\n- Never suggest customisations or say \"you could add…\" or \"you could swap…\"\n- Never make safety recommendations (\"this is safe for you\", \"avoid this\")\n- Never tell customers to speak to staff or a team member\n- Never discuss competitor restaurants\n- Never process orders or handle payments\n- Never show data for items the user did not ask about"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        784,
+        48
+      ],
+      "id": "8ed158e8-35dd-44f6-a588-40628cde0763",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_MENU_SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "TacoBell_UK_Menu",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 19874161,
+          "mode": "list",
+          "cachedResultName": "Nutrition (UK)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "options": {},
+        "descriptionType": "manual",
+        "toolDescription": "Look up detailed nutrition information for Taco Bell UK menu items. Use this tool when the customer asks about calories, energy (kJ/kcal), fat, saturated fat, carbohydrates, sugars, fibre, protein, or salt content of any specific item. Also use this for macro queries."
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        272
+      ],
+      "id": "ae4b0ef6-bc99-4081-b3fa-9468a1fbdc32",
+      "name": "nutrition_lookup",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_MENU_SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "TacoBell_UK_Menu",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1840724195,
+          "mode": "list",
+          "cachedResultName": "Allergens (UK)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "options": {},
+        "descriptionType": "manual",
+        "toolDescription": "Check allergen information for Taco Bell UK menu items. Use this tool when the customer asks whether an item contains or is free from any of the 14 UK/EU regulated allergens: cereals/gluten, milk/dairy, eggs, fish, crustaceans, peanuts, tree nuts, soya, celery, mustard, sesame, sulphur dioxide/sulphites, lupin, molluscs. Returns YES/MAY CONTAIN/FREE for each allergen."
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        848,
+        272
+      ],
+      "id": "1faf2992-621a-44a8-9c88-51e87df4ad9b",
+      "name": "allergen_check",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_MENU_SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "TacoBell_UK_Menu",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2007049428,
+          "mode": "list",
+          "cachedResultName": "Ingredients (UK)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "options": {},
+        "descriptionType": "manual",
+        "toolDescription": "Look up the full ingredient list for a specific Taco Bell UK menu item. Use this tool when the customer asks what is in a specific item, what ingredients it contains, or requests the ingredient list. Returns the complete ingredient declaration word for word."
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        272
+      ],
+      "id": "4cbb10ac-6ec6-43fd-97bd-41cf6a50ea51",
+      "name": "ingredients_lookup",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_MENU_SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "TacoBell_UK_Menu",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1297638431,
+          "mode": "list",
+          "cachedResultName": "Summary",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "options": {},
+        "descriptionType": "manual",
+        "toolDescription": "Get a category-level summary of Taco Bell UK menu items. Use this tool alongside menu_lookup when the customer asks for all items in a category (e.g. show me all tacos, what sides do you have?) or asks for filtered lists (vegetarian options, vegan options). Returns a summary view across item groups."
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1104,
+        272
+      ],
+      "id": "1e29a54f-0d31-432d-8ce3-9e017028e230",
+      "name": "summary_lookup",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
     {
       "parameters": {
         "model": {
           "__rl": true,
           "mode": "list",
-          "value": "gpt-5-mini"
+          "value": "gpt-4o-mini"
         },
         "builtInTools": {},
         "options": {}
       },
+      "id": "45517460-8959-4a93-85c1-cb12c96edb8c",
+      "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
-      "position": [592, 432],
-      "id": "d3d0dbff-2318-45ef-a0ac-68e1d2e21fe6",
-      "name": "OpenAI Chat Model",
+      "position": [
+        464,
+        272
+      ],
       "credentials": {
         "openAiApi": {
           "id": "YOUR_OPENAI_CREDENTIAL_ID",
@@ -25,400 +185,205 @@
     },
     {
       "parameters": {
-        "public": true,
-        "initialMessages": "Welcome to our restaurant! 🍽️\n\nI'm here to help you with:\n• Menu items and recommendations\n• Allergy and dietary information\n• Nutrition details\n• Frequently asked questions\n\nHow can I assist you today?",
-        "options": {
-          "inputPlaceholder": "Ask about our menu, allergies, nutrition...",
-          "loadPreviousSession": "memory",
-          "subtitle": "Your friendly restaurant assistant",
-          "title": "Restaurant AI Assistant"
-        }
-      },
-      "id": "2b5707ea-bffd-4ecd-92f0-0ccc9e3bcc42",
-      "name": "When Chat Message Received",
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
-      "typeVersion": 1.4,
-      "position": [240, 208],
-      "webhookId": "YOUR_WEBHOOK_ID"
-    },
-    {
-      "parameters": {
-        "contextWindowLength": 10
-      },
-      "id": "807373a8-fa1b-48cb-bef4-a4bc95379759",
-      "name": "Conversation Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1.3,
-      "position": [320, 432]
-    },
-    {
-      "parameters": {
-        "options": {
-          "systemMessage": "You are a warm, professional, and exceptionally polite restaurant assistant. Your communication style should be natural, friendly, and well-structured.\n\n**CRITICAL: You MUST use your tools to answer questions**\n• When customers ask about menu items, prices, or dishes → Use the \"Menu Items Tool\"\n• When customers ask about nutrition, calories, allergens, or dietary info → Use the \"Nutrition Information Tool\"\n• NEVER make up menu information - always check the tools first\n\n**Your Responsibilities:**\n\n1. **Provide Accurate Menu Information**\n   • Always use the Menu Items Tool to look up dishes, prices, and availability\n   • Present menu options in a clear, organized format\n   • Highlight popular items and make personalized recommendations\n\n2. **Handle Dietary & Allergy Inquiries with Care**\n   • Use the Nutrition Information Tool for all allergy and nutrition questions\n   • Take allergies very seriously - verify ingredients thoroughly\n   • Suggest safe alternatives when needed\n\n3. **Maintain a Polite, Natural Tone**\n   • Be warm and welcoming, like a helpful friend\n   • Use courteous language: \"I would be delighted to help\", \"Wonderful choice!\", \"May I suggest...\"\n   • Show genuine enthusiasm about the food\n   • Keep responses concise and conversational\n   • Avoid offering numbered menus or multiple choice options\n   • Respond naturally to greetings and casual conversation\n\n4. **Structure Responses Clearly**\n   • Use simple, natural language\n   • Keep responses brief and to the point\n   • Only provide detailed information when specifically asked\n   • Avoid overwhelming customers with too many options at once\n\n5. **Natural Conversation Flow**\n   • For simple greetings like \"hi\" or \"hello\", respond warmly and briefly\n   • Ask one simple question at a time\n   • Let the conversation flow naturally based on customer responses\n   • Do not present formal menus unless the customer asks for menu details\n\nAlways prioritize accuracy, customer safety, and satisfaction. Keep responses friendly, brief, and natural.",
-          "maxIterations": 10,
-          "returnIntermediateSteps": false
-        }
-      },
-      "id": "320b4b9d-9e2e-4355-9946-7a470a542992",
-      "name": "Restaurant AI Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [656, 208]
-    },
-    {
-      "parameters": {},
-      "id": "b0998e79-246e-47de-97a1-8eae94e53135",
-      "name": "Knowledge Retriever",
-      "type": "@n8n/n8n-nodes-langchain.retrieverVectorStore",
-      "typeVersion": 1,
-      "position": [816, 640]
-    },
-    {
-      "parameters": {
-        "memoryKey": {
+        "documentId": {
           "__rl": true,
-          "mode": "id",
-          "value": "restaurant_menu_data"
-        }
+          "value": "YOUR_MENU_SPREADSHEET_ID",
+          "mode": "list",
+          "cachedResultName": "TacoBell_UK_Menu",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 800733361,
+          "mode": "list",
+          "cachedResultName": "UK Menu Items",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_MENU_SPREADSHEET_ID/edit"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {},
+        "descriptionType": "manual",
+        "toolDescription": "Search the Taco Bell UK menu for food items. Use this tool when the customer asks about specific items by name, asks for prices, asks what is available in a category (e.g. what burritos do you have?), or asks about dietary suitability (vegetarian, vegan, gluten-free). Returns item name, description, price, category, and dietary flags."
       },
-      "id": "c27a8a87-7b05-4875-b05c-fa0e931022a3",
-      "name": "Restaurant Knowledge Base",
-      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
-      "typeVersion": 1.3,
-      "position": [448, 640]
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1232,
+        272
+      ],
+      "id": "14f8ac1b-b843-4f6d-a1c7-701268d97697",
+      "name": "menu_lookup",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
-        "options": {}
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
       },
-      "id": "4c364708-b6e6-4291-9214-88d177ad3598",
-      "name": "OpenAI Embeddings",
-      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
-      "position": [240, 640],
+      "position": [
+        528,
+        -80
+      ],
+      "id": "ec489345-a047-49d4-9fca-45b93184c51d",
+      "name": "Telegram Trigger",
+      "webhookId": "4d07c087-fc36-4444-9103-5470321799e4",
       "credentials": {
-        "openAiApi": {
-          "id": "YOUR_OPENAI_CREDENTIAL_ID",
-          "name": "OpenAi account"
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
         }
       }
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "1",
-              "name": "timestamp",
-              "value": "={{ $now.toISO() }}",
-              "type": "string"
-            },
-            {
-              "id": "2",
-              "name": "sessionId",
-              "value": "={{ $(\"When Chat Message Received\").item.json.sessionId }}",
-              "type": "string"
-            },
-            {
-              "id": "3",
-              "name": "customerMessage",
-              "value": "={{ $(\"When Chat Message Received\").item.json.chatInput }}",
-              "type": "string"
-            },
-            {
-              "id": "4",
-              "name": "aiResponse",
-              "value": "={{ $json.output }}",
-              "type": "string"
-            },
-            {
-              "id": "5",
-              "name": "conversationDate",
-              "value": "={{ $now.toFormat(\"yyyy-MM-dd\") }}",
-              "type": "string"
-            },
-            {
-              "id": "6",
-              "name": "conversationTime",
-              "value": "={{ $now.toFormat(\"HH:mm:ss\") }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
       },
-      "id": "e0eeb018-d421-4c88-8023-c0195aeb6cce",
-      "name": "Extract Customer Data",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [1056, 320]
-    },
-    {
-      "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "YOUR_INTERACTIONS_SPREADSHEET_ID",
-          "mode": "list",
-          "cachedResultName": "customer respnse"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "Sheet1",
-          "mode": "list",
-          "cachedResultName": "Sheet1"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "Data and time": "={{ $json.timestamp }}",
-            "sessionID": "={{ $json.sessionId }}",
-            "customer message": "={{ $json.customerMessage }}",
-            "AI response": "={{ $json.aiResponse }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "Data and time",
-              "displayName": "Data and time",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "sessionID",
-              "displayName": "sessionID",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "customer message",
-              "displayName": "customer message",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "AI response",
-              "displayName": "AI response",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "id": "dad5bc0a-0f3b-4f4a-b9cf-c94858595e81",
-      "name": "Save to Customer Interactions",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [1280, 320],
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1136,
+        48
+      ],
+      "id": "2286ce5e-cf59-4c36-84f8-ee8e52b272ae",
+      "name": "Send a text message",
+      "webhookId": "2090226c-64d4-4985-8e96-6113828168f6",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "Google Sheets OAuth2 API"
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram account"
         }
       }
     },
     {
       "parameters": {
-        "content": "## 📋 Setup Instructions\n\n**1. Prepare Your Restaurant Data:**\n   • Create a separate workflow to load your menu/FAQ data into the vector store\n   • Use the \"Simple Vector Store\" node in INSERT mode\n   • Set the memory key to: `restaurant_menu_data`\n\n**2. Configure Google Sheets:**\n   • Create a new sheet with columns: timestamp, sessionId, customerMessage, aiResponse, conversationDate, conversationTime\n   • Connect your Google Sheets credential\n   • Select the sheet in the \"Save to Customer Interactions\" node",
-        "height": 200,
-        "width": 652,
-        "color": 2
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "tableName": "restaurent_AI_agent_chat_histories",
+        "contextWindowLength": 100
       },
-      "id": "ce7b3009-1c93-47dd-8981-96c827980911",
-      "name": "Sticky Note 3414e866",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [-96, -336]
-    },
-    {
-      "parameters": {
-        "content": "## 💡 Best Practices for Customer Data\n\n**Recording Strategy:**\n✅ **DO Record:**\n   • Every message exchange (question + response)\n   • Timestamp for analytics\n   • Session ID to track conversations\n   • Date/time for reporting\n\n✅ **Benefits:**\n   • Track common questions\n   • Improve AI responses\n   • Identify menu gaps\n   • Customer service insights\n\n⚠️ **Privacy:**\n   • Only collect necessary data\n   • Inform users about data collection\n   • Comply with privacy regulations",
-        "height": 200,
-        "width": 524,
-        "color": 5
-      },
-      "id": "8bc841b2-b59d-42f3-aa71-72032fbba967",
-      "name": "Sticky Note ecb9a59c",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [-96, -112]
-    },
-    {
-      "parameters": {
-        "descriptionType": "manual",
-        "toolDescription": "Search the Taco Bell UK menu for all food items including tacos, burritos, sides, and drinks. Use this tool to find menu items, their prices, categories, and dietary suitability such as vegetarian, vegan, or gluten-free options. Always use this tool when a customer asks about any menu item or dietary options like vegetarian tacos.",
-        "documentId": {
-          "__rl": true,
-          "value": "YOUR_MENU_SPREADSHEET_ID",
-          "mode": "list",
-          "cachedResultName": "TacoBell_UK_Menu"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "UK Menu Items",
-          "mode": "list",
-          "cachedResultName": "UK Menu Items"
-        },
-        "options": {}
-      },
-      "id": "f6becb8b-6e5f-4368-82e6-8bfff766672e",
-      "name": "Menu Items Tool",
-      "type": "n8n-nodes-base.googleSheetsTool",
-      "typeVersion": 4.7,
-      "position": [800, 432],
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1136,
+        -128
+      ],
+      "id": "bce6b454-f0ac-4802-816d-c900e8d74310",
+      "name": "Postgres Chat Memory",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "Google Sheets OAuth2 API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "descriptionType": "manual",
-        "toolDescription": "Look up detailed nutrition information, calories, allergens, and ingredient details for Taco Bell UK menu items. Use this tool when a customer asks about calories, allergens, ingredients, protein, fat, or any specific dietary information about a menu item.",
-        "documentId": {
-          "__rl": true,
-          "value": "YOUR_MENU_SPREADSHEET_ID",
-          "mode": "list",
-          "cachedResultName": "TacoBell_UK_Menu"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "Nutrition (UK)",
-          "mode": "list",
-          "cachedResultName": "Nutrition (UK)"
-        },
-        "options": {}
-      },
-      "id": "75461ced-2a63-468e-a38a-9b48aca178b2",
-      "name": "Nutrition Information Tool",
-      "type": "n8n-nodes-base.googleSheetsTool",
-      "typeVersion": 4.7,
-      "position": [992, 464],
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
-          "name": "Google Sheets OAuth2 API"
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres account"
         }
       }
     }
   ],
   "connections": {
+    "nutrition_lookup": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "allergen_check": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ingredients_lookup": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "summary_lookup": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "OpenAI Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "Restaurant AI Agent",
+            "node": "AI Agent",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "When Chat Message Received": {
+    "AI Agent": {
       "main": [
         [
           {
-            "node": "Restaurant AI Agent",
+            "node": "Send a text message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Conversation Memory": {
+    "menu_lookup": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
       "ai_memory": [
         [
           {
-            "node": "When Chat Message Received",
+            "node": "AI Agent",
             "type": "ai_memory",
-            "index": 0
-          },
-          {
-            "node": "Restaurant AI Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Restaurant AI Agent": {
-      "main": [
-        [
-          {
-            "node": "Extract Customer Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Restaurant Knowledge Base": {
-      "ai_vectorStore": [
-        [
-          {
-            "node": "Knowledge Retriever",
-            "type": "ai_vectorStore",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Embeddings": {
-      "ai_embedding": [
-        [
-          {
-            "node": "Restaurant Knowledge Base",
-            "type": "ai_embedding",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Customer Data": {
-      "main": [
-        [
-          {
-            "node": "Save to Customer Interactions",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Menu Items Tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "Restaurant AI Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Nutrition Information Tool": {
-      "ai_tool": [
-        [
-          {
-            "node": "Restaurant AI Agent",
-            "type": "ai_tool",
             "index": 0
           }
         ]
@@ -426,11 +391,7 @@
     }
   },
   "settings": {
-    "executionOrder": "v1",
-    "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false,
-    "binaryMode": "separate",
-    "timeSavedMode": "fixed"
+    "executionOrder": "v1"
   },
   "staticData": null,
   "meta": {
