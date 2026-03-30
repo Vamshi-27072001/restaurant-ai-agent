@@ -34,3 +34,10 @@ logs/
 tmp/
 temp/
 *.tmp
+
+# MCP config — contains real API keys, never commit
+github/
+.mcp.json
+
+# Empty placeholders
+restaurant_AI_agent.md
