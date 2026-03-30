@@ -1,36 +1,36 @@
 # Environment & secrets
 .env
 .env.local
-.env.*.local
+.env.production
 *.env
 
-# n8n credentials and config
-.mcp.json
+# n8n credentials export
 credentials.json
-*credentials*
+*credentials*.json
 
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-venv/
-.venv/
-*.egg-info/
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
 
-# Logs
-*.log
-logs/
-
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Excel / Word source files (large binaries, store separately)
-*.xlsx
-*.xls
-*.docx
-*.doc
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Node
-node_modules/
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp

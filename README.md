@@ -1,152 +1,122 @@
-# Taco Bell UK — AI Chatbot (n8n)
+# Taco Bell UK AI Chatbot — n8n Workflow
 
-An AI-powered customer service chatbot for Taco Bell UK, built on n8n. Customers chat via a public web widget and get instant, accurate answers about the menu, nutrition, and allergens — with every conversation logged to Google Sheets.
+An AI-powered restaurant chatbot built with n8n that handles customer queries about the Taco Bell UK menu, nutrition, and allergens in real time.
 
----
+## Overview
+
+This workflow provides a public chat interface where customers can:
+- Ask about menu items, prices, and availability
+- Get dietary information (vegetarian, vegan, gluten-free)
+- Look up calories, allergens, and ingredients
+- Receive natural, conversational responses
+
+All conversations are automatically logged to Google Sheets for analytics.
 
 ## Architecture
 
 ```
-Customer (Chat Widget)
-  └─▶ When Chat Message Received  (n8n Chat Trigger — public URL)
-        └─▶ Restaurant AI Agent   (OpenAI GPT-5-mini + LangChain)
-              ├─ Conversation Memory    (last 10 messages)
-              ├─ Menu Items Tool        (Google Sheets → "UK Menu Items" tab)
-              ├─ Nutrition Info Tool    (Google Sheets → "Nutrition (UK)" tab)
-              └─ Knowledge Retriever   (in-memory vector store)
-        └─▶ Extract Customer Data (Set node)
-              └─▶ Save to Customer Interactions (Google Sheets log)
+Chat Trigger (Public Widget)
+        │
+        ▼
+Restaurant AI Agent (LangChain)
+    ├── OpenAI Chat Model (gpt-4o-mini)
+    ├── Conversation Memory (10-message window)
+    ├── Menu Items Tool → Google Sheets (UK Menu Items)
+    └── Nutrition Information Tool → Google Sheets (Nutrition UK)
+        │
+        ▼
+Extract Customer Data (Set Node)
+        │
+        ▼
+Save to Customer Interactions (Google Sheets)
 ```
 
-| Component | Detail |
-|---|---|
-| AI Model | OpenAI GPT-5-mini |
-| Embeddings | OpenAI (text-embedding) |
-| Memory | Buffer window — 10 messages |
-| Menu data | Google Sheets (TacoBell_UK_Menu) |
-| Conversation log | Google Sheets (customer respnse) |
-| Trigger | n8n Chat Widget (public, embeddable) |
-
----
+A **Restaurant Knowledge Base** (in-memory vector store with OpenAI Embeddings) is also wired in for semantic retrieval via the Knowledge Retriever node.
 
 ## Prerequisites
 
-- [n8n](https://n8n.io) account (cloud or self-hosted)
+- n8n instance (cloud or self-hosted, v1.0+)
 - OpenAI API key
 - Google account with Sheets access
-- Two Google Sheets set up (see below)
+- Two Google Spreadsheets (see Setup below)
 
----
+## Setup
 
-## Google Sheets Setup
+### 1. Create Google Spreadsheets
 
-### Sheet 1 — Menu & Nutrition Data
-Create a Google Sheet named **TacoBell_UK_Menu** with these tabs:
+**Menu Spreadsheet** — two sheets required:
 
-| Tab name | Contents |
+| Sheet name | Purpose |
 |---|---|
-| `UK Menu Items` | Item name, category, price, description, dietary flags |
-| `Nutrition (UK)` | Item name, calories, protein, fat, carbs, allergens |
+| `UK Menu Items` | Item name, price, category, dietary flags |
+| `Nutrition (UK)` | Calories, protein, fat, allergens, ingredients |
 
-### Sheet 2 — Conversation Log
-Create a Google Sheet named **customer respnse** (or any name) with a tab `Sheet1` containing these columns:
+**Customer Interactions Spreadsheet** — one sheet with these columns:
 
-| Data and time | sessionID | customer message | AI response |
-|---|---|---|---|
+| Column | Description |
+|---|---|
+| `Data and time` | ISO timestamp of the exchange |
+| `sessionID` | Unique session identifier |
+| `customer message` | What the customer asked |
+| `AI response` | What the agent replied |
 
----
+### 2. Configure n8n Credentials
 
-## Import & Configure Workflow
+Inside your n8n instance go to **Settings → Credentials** and add:
 
-### 1. Import
-1. Open your n8n instance
-2. Go to **Workflows → Import**
-3. Upload `workflow.json` from this repo
+| Credential type | Used by |
+|---|---|
+| OpenAI API | OpenAI Chat Model, OpenAI Embeddings |
+| Google Sheets OAuth2 API | Menu Items Tool, Nutrition Tool, Save to Customer Interactions |
 
-### 2. Set up Credentials
+### 3. Import the Workflow
 
-**OpenAI**
-1. Go to **Credentials → New → OpenAI**
-2. Paste your API key
-3. Assign it to both `OpenAI Chat Model` and `OpenAI Embeddings` nodes
+1. In n8n, go to **Workflows → Import from file**
+2. Select `workflow.json` from this repo
+3. After import, open each node that references a credential and select your own credential
+4. Update the `documentId` in these three nodes with your actual spreadsheet IDs:
+   - **Menu Items Tool** → your Menu spreadsheet ID
+   - **Nutrition Information Tool** → your Menu spreadsheet ID
+   - **Save to Customer Interactions** → your Interactions spreadsheet ID
 
-**Google Sheets**
-1. Go to **Credentials → New → Google Sheets OAuth2**
-2. Complete the OAuth flow
-3. Assign the credential to: `Menu Items Tool`, `Nutrition Information Tool`, `Save to Customer Interactions`
+### 4. Activate & Test
 
-### 3. Link Google Sheets
-In each of these nodes, re-select your actual sheet:
-- `Menu Items Tool` → select your TacoBell_UK_Menu sheet, tab: `UK Menu Items`
-- `Nutrition Information Tool` → same sheet, tab: `Nutrition (UK)`
-- `Save to Customer Interactions` → select your conversation log sheet, tab: `Sheet1`
+1. Click **Activate** to enable the workflow
+2. Open the **When Chat Message Received** node and copy the **Chat URL**
+3. Open the URL in a browser and send a test message (e.g. "What tacos do you have?")
 
-### 4. Load the Knowledge Base (Optional)
-To use the vector store for additional context, create a separate loader workflow:
-1. Use a **Google Sheets** node to read your menu data
-2. Connect to a **Simple Vector Store** node in INSERT mode
-3. Set the memory key to: `restaurant_menu_data`
-4. Run it once to populate the store
+## Environment Variables
 
-### 5. Activate
-Toggle the **Active** switch in the top-right of the workflow editor.
+Copy `.env.example` to `.env` and fill in your values. The `.env` file is gitignored and must never be committed.
 
----
-
-## Accessing the Chat Widget
-
-Once active, the chat widget is available at:
-```
-https://your-instance.app.n8n.cloud/webhook/YOUR_WEBHOOK_ID/chat
+```bash
+cp .env.example .env
 ```
 
-You can embed it in any website using an `<iframe>`.
+See `.env.example` for all required keys.
 
----
+## Workflow Nodes
 
-## AI System Prompt
+| Node | Type | Purpose |
+|---|---|---|
+| When Chat Message Received | Chat Trigger | Public entry point, loads previous session |
+| Conversation Memory | Memory Buffer | Retains last 10 messages |
+| OpenAI Chat Model | LLM | Powers the agent (gpt-4o-mini) |
+| Restaurant AI Agent | LangChain Agent | Orchestrates tools and generates responses |
+| Menu Items Tool | Google Sheets Tool | Reads UK menu data |
+| Nutrition Information Tool | Google Sheets Tool | Reads nutrition/allergen data |
+| Restaurant Knowledge Base | Vector Store | In-memory semantic index (key: `restaurant_menu_data`) |
+| OpenAI Embeddings | Embeddings | Creates vectors for the knowledge base |
+| Knowledge Retriever | Retriever | Semantic search over the vector store |
+| Extract Customer Data | Set | Formats data for logging |
+| Save to Customer Interactions | Google Sheets | Appends each exchange to the log sheet |
 
-The full system prompt is in [`prompts/system_prompt.md`](prompts/system_prompt.md). Edit it in n8n via:
+## System Prompt
 
-`Restaurant AI Agent` node → **Options** → **System Message**
+The full agent system prompt is in [prompts/system_prompt.md](prompts/system_prompt.md).
 
-Key rules:
-- Always use the Menu Items Tool before answering menu questions
-- Always use the Nutrition Information Tool for allergen/calorie queries
-- Keep responses brief and conversational
-- Never fabricate menu information
+## Notes
 
----
-
-## Files
-
-```
-taco bell AI agent/
-├── workflow.json          # Full n8n workflow export (import this)
-├── prompts/
-│   └── system_prompt.md   # AI system prompt (source of truth)
-├── .env.example           # Required environment variable keys
-├── .gitignore
-└── README.md
-```
-
----
-
-## Updating Menu Data
-
-When the menu, prices, or nutrition info changes:
-1. Update the relevant tab in your **TacoBell_UK_Menu** Google Sheet
-2. The workflow reads live from Google Sheets — no redeployment needed
-3. Re-run your vector store loader workflow if you use the knowledge base
-
----
-
-## Conversation Logging
-
-Every chat exchange is logged to your Google Sheet with:
-- Timestamp (ISO 8601)
-- Session ID
-- Customer message
-- AI response
-
-Use this data to identify common questions and improve the system prompt over time.
+- The in-memory vector store (`restaurant_menu_data`) resets on each n8n restart. To persist knowledge, populate it from a separate workflow on startup.
+- The chat widget is public — no authentication is required to access it.
+- All conversation data logged to Google Sheets should be handled in compliance with applicable privacy regulations (GDPR, etc.).

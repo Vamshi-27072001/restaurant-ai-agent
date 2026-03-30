@@ -1,8 +1,28 @@
 {
   "name": "Taco Bell UK AI Chatbot",
-  "id": "ASSIGNED_BY_N8N_ON_IMPORT",
-  "active": false,
   "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [592, 432],
+      "id": "d3d0dbff-2318-45ef-a0ac-68e1d2e21fe6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAi account"
+        }
+      }
+    },
     {
       "parameters": {
         "public": true,
@@ -19,29 +39,7 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.4,
       "position": [240, 208],
-      "webhookId": "ASSIGNED_BY_N8N_ON_IMPORT"
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "mode": "list",
-          "value": "gpt-5-mini"
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [592, 432],
-      "id": "d3d0dbff-2318-45ef-a0ac-68e1d2e21fe6",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
-          "name": "OpenAi account"
-        }
-      }
+      "webhookId": "YOUR_WEBHOOK_ID"
     },
     {
       "parameters": {
@@ -100,7 +98,7 @@
       "position": [240, 640],
       "credentials": {
         "openAiApi": {
-          "id": "REPLACE_WITH_YOUR_OPENAI_CREDENTIAL_ID",
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
           "name": "OpenAi account"
         }
       }
@@ -109,12 +107,42 @@
       "parameters": {
         "assignments": {
           "assignments": [
-            { "id": "1", "name": "timestamp",        "value": "={{ $now.toISO() }}", "type": "string" },
-            { "id": "2", "name": "sessionId",         "value": "={{ $(\"When Chat Message Received\").item.json.sessionId }}", "type": "string" },
-            { "id": "3", "name": "customerMessage",   "value": "={{ $(\"When Chat Message Received\").item.json.chatInput }}", "type": "string" },
-            { "id": "4", "name": "aiResponse",        "value": "={{ $json.output }}", "type": "string" },
-            { "id": "5", "name": "conversationDate",  "value": "={{ $now.toFormat(\"yyyy-MM-dd\") }}", "type": "string" },
-            { "id": "6", "name": "conversationTime",  "value": "={{ $now.toFormat(\"HH:mm:ss\") }}", "type": "string" }
+            {
+              "id": "1",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "sessionId",
+              "value": "={{ $(\"When Chat Message Received\").item.json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "customerMessage",
+              "value": "={{ $(\"When Chat Message Received\").item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "aiResponse",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "conversationDate",
+              "value": "={{ $now.toFormat(\"yyyy-MM-dd\") }}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "conversationTime",
+              "value": "={{ $now.toFormat(\"HH:mm:ss\") }}",
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -130,24 +158,65 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "REPLACE_WITH_YOUR_GOOGLE_SHEET_ID",
+          "value": "YOUR_INTERACTIONS_SPREADSHEET_ID",
           "mode": "list",
           "cachedResultName": "customer respnse"
         },
         "sheetName": {
           "__rl": true,
           "value": "Sheet1",
-          "mode": "list"
+          "mode": "list",
+          "cachedResultName": "Sheet1"
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Data and time":    "={{ $json.timestamp }}",
-            "sessionID":        "={{ $json.sessionId }}",
+            "Data and time": "={{ $json.timestamp }}",
+            "sessionID": "={{ $json.sessionId }}",
             "customer message": "={{ $json.customerMessage }}",
-            "AI response":      "={{ $json.aiResponse }}"
+            "AI response": "={{ $json.aiResponse }}"
           },
-          "matchingColumns": []
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Data and time",
+              "displayName": "Data and time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sessionID",
+              "displayName": "sessionID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer message",
+              "displayName": "customer message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI response",
+              "displayName": "AI response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
@@ -158,10 +227,36 @@
       "position": [1280, 320],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "REPLACE_WITH_YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
           "name": "Google Sheets OAuth2 API"
         }
       }
+    },
+    {
+      "parameters": {
+        "content": "## 📋 Setup Instructions\n\n**1. Prepare Your Restaurant Data:**\n   • Create a separate workflow to load your menu/FAQ data into the vector store\n   • Use the \"Simple Vector Store\" node in INSERT mode\n   • Set the memory key to: `restaurant_menu_data`\n\n**2. Configure Google Sheets:**\n   • Create a new sheet with columns: timestamp, sessionId, customerMessage, aiResponse, conversationDate, conversationTime\n   • Connect your Google Sheets credential\n   • Select the sheet in the \"Save to Customer Interactions\" node",
+        "height": 200,
+        "width": 652,
+        "color": 2
+      },
+      "id": "ce7b3009-1c93-47dd-8981-96c827980911",
+      "name": "Sticky Note 3414e866",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-96, -336]
+    },
+    {
+      "parameters": {
+        "content": "## 💡 Best Practices for Customer Data\n\n**Recording Strategy:**\n✅ **DO Record:**\n   • Every message exchange (question + response)\n   • Timestamp for analytics\n   • Session ID to track conversations\n   • Date/time for reporting\n\n✅ **Benefits:**\n   • Track common questions\n   • Improve AI responses\n   • Identify menu gaps\n   • Customer service insights\n\n⚠️ **Privacy:**\n   • Only collect necessary data\n   • Inform users about data collection\n   • Comply with privacy regulations",
+        "height": 200,
+        "width": 524,
+        "color": 5
+      },
+      "id": "8bc841b2-b59d-42f3-aa71-72032fbba967",
+      "name": "Sticky Note ecb9a59c",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-96, -112]
     },
     {
       "parameters": {
@@ -169,14 +264,15 @@
         "toolDescription": "Search the Taco Bell UK menu for all food items including tacos, burritos, sides, and drinks. Use this tool to find menu items, their prices, categories, and dietary suitability such as vegetarian, vegan, or gluten-free options. Always use this tool when a customer asks about any menu item or dietary options like vegetarian tacos.",
         "documentId": {
           "__rl": true,
-          "value": "REPLACE_WITH_YOUR_MENU_SHEET_ID",
+          "value": "YOUR_MENU_SPREADSHEET_ID",
           "mode": "list",
           "cachedResultName": "TacoBell_UK_Menu"
         },
         "sheetName": {
           "__rl": true,
           "value": "UK Menu Items",
-          "mode": "list"
+          "mode": "list",
+          "cachedResultName": "UK Menu Items"
         },
         "options": {}
       },
@@ -187,7 +283,7 @@
       "position": [800, 432],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "REPLACE_WITH_YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
           "name": "Google Sheets OAuth2 API"
         }
       }
@@ -198,14 +294,15 @@
         "toolDescription": "Look up detailed nutrition information, calories, allergens, and ingredient details for Taco Bell UK menu items. Use this tool when a customer asks about calories, allergens, ingredients, protein, fat, or any specific dietary information about a menu item.",
         "documentId": {
           "__rl": true,
-          "value": "REPLACE_WITH_YOUR_MENU_SHEET_ID",
+          "value": "YOUR_MENU_SPREADSHEET_ID",
           "mode": "list",
           "cachedResultName": "TacoBell_UK_Menu"
         },
         "sheetName": {
           "__rl": true,
           "value": "Nutrition (UK)",
-          "mode": "list"
+          "mode": "list",
+          "cachedResultName": "Nutrition (UK)"
         },
         "options": {}
       },
@@ -216,7 +313,7 @@
       "position": [992, 464],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "REPLACE_WITH_YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
           "name": "Google Sheets OAuth2 API"
         }
       }
@@ -224,43 +321,121 @@
   ],
   "connections": {
     "OpenAI Chat Model": {
-      "ai_languageModel": [[{ "node": "Restaurant AI Agent", "type": "ai_languageModel", "index": 0 }]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "Restaurant AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
     "When Chat Message Received": {
-      "main": [[{ "node": "Restaurant AI Agent", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Restaurant AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Conversation Memory": {
       "ai_memory": [
-        [{ "node": "When Chat Message Received", "type": "ai_memory", "index": 0 }],
-        [{ "node": "Restaurant AI Agent",        "type": "ai_memory", "index": 0 }]
+        [
+          {
+            "node": "When Chat Message Received",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Restaurant AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
       ]
     },
     "Restaurant AI Agent": {
-      "main": [[{ "node": "Extract Customer Data", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Extract Customer Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Restaurant Knowledge Base": {
-      "ai_vectorStore": [[{ "node": "Knowledge Retriever", "type": "ai_vectorStore", "index": 0 }]]
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Knowledge Retriever",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
     },
     "OpenAI Embeddings": {
-      "ai_embedding": [[{ "node": "Restaurant Knowledge Base", "type": "ai_embedding", "index": 0 }]]
+      "ai_embedding": [
+        [
+          {
+            "node": "Restaurant Knowledge Base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Extract Customer Data": {
-      "main": [[{ "node": "Save to Customer Interactions", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Save to Customer Interactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Menu Items Tool": {
-      "ai_tool": [[{ "node": "Restaurant AI Agent", "type": "ai_tool", "index": 0 }]]
+      "ai_tool": [
+        [
+          {
+            "node": "Restaurant AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Nutrition Information Tool": {
-      "ai_tool": [[{ "node": "Restaurant AI Agent", "type": "ai_tool", "index": 0 }]]
+      "ai_tool": [
+        [
+          {
+            "node": "Restaurant AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
     "executionOrder": "v1",
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed"
   },
+  "staticData": null,
   "meta": {
-    "templateCredsSetupCompleted": false
+    "templateCredsSetupCompleted": true
   },
+  "pinData": {},
   "tags": []
 }
