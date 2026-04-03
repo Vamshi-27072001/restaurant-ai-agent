@@ -1,12 +1,13 @@
 # Restaurant AI Agent — n8n Workflow
 
-An AI-powered restaurant chatbot built with n8n that handles customer queries about the Taco Bell UK menu via **Telegram**. Customers can ask about menu items, nutrition, allergens, and ingredients and receive natural, conversational replies from an AI persona named **Shiva**.
+An AI-powered restaurant chatbot built with n8n that handles customer queries about the Taco Bell UK menu via **Telegram**. Customers can ask about menu items, nutrition, allergens, ingredients, and general restaurant information and receive natural, conversational replies from an AI persona named **Shiva**.
 
 ## Overview
 
 - Triggered by incoming Telegram messages
 - Powered by OpenAI `gpt-4o-mini` via a LangChain agent
-- Reads live data from a Google Spreadsheet (5 sheets)
+- Reads live menu data from a Google Spreadsheet (5 sheets)
+- Answers general restaurant questions (hours, locations, delivery) from a **Google Docs FAQ document**
 - Remembers conversation history per user using **Postgres** (100-message window)
 - Replies back to the same Telegram chat automatically
 
@@ -22,7 +23,8 @@ AI Agent ("Shiva") — gpt-4o-mini
     ├── nutrition_lookup         → Google Sheets: Nutrition (UK)
     ├── allergen_check           → Google Sheets: Allergens (UK)
     ├── ingredients_lookup       → Google Sheets: Ingredients (UK)
-    └── summary_lookup           → Google Sheets: Summary
+    ├── summary_lookup           → Google Sheets: Summary
+    └── FAQ_lookup               → Google Docs: Restaurant FAQ document
         │
         ▼
 Send a text message  (Telegram reply to same chat)
@@ -33,7 +35,7 @@ Send a text message  (Telegram reply to same chat)
 - n8n instance (cloud or self-hosted, v1.0+)
 - Telegram Bot (created via [@BotFather](https://t.me/botfather))
 - OpenAI API key
-- Google account with Sheets access
+- Google account with Sheets and Docs access
 - PostgreSQL database (for persistent chat memory)
 
 ## Google Spreadsheet Structure
@@ -47,6 +49,18 @@ One spreadsheet with **5 sheets** required:
 | `Allergens (UK)` | 14 EU/UK allergens per item — YES / MAY CONTAIN / FREE |
 | `Ingredients (UK)` | Full ingredient declaration per item |
 | `Summary` | Category-level summaries for filter queries |
+
+## Google Docs FAQ Document
+
+A single Google Doc containing general restaurant information:
+
+- Opening hours
+- Locations
+- Delivery options and partners
+- Policies and services
+- Any other non-menu information you want the bot to answer
+
+The agent reads this document via the `FAQ_lookup` tool whenever a customer asks a general question about the restaurant.
 
 ## Setup
 
@@ -76,7 +90,12 @@ CREATE TABLE restaurent_AI_agent_chat_histories (
 Create a spreadsheet with the 5 sheets listed above and note the spreadsheet ID from the URL:
 `https://docs.google.com/spreadsheets/d/YOUR_SPREADSHEET_ID/edit`
 
-### 4. Configure n8n Credentials
+### 4. Create Google Docs FAQ Document
+
+Create a Google Doc with your restaurant FAQ content and note the document URL:
+`https://docs.google.com/document/d/YOUR_DOCUMENT_ID/edit`
+
+### 5. Configure n8n Credentials
 
 In n8n go to **Settings → Credentials** and create:
 
@@ -84,20 +103,22 @@ In n8n go to **Settings → Credentials** and create:
 |---|---|
 | Telegram API | Telegram Trigger, Send a text message |
 | OpenAI API | OpenAI Chat Model |
-| Google Sheets OAuth2 API | All 5 tool nodes |
+| Google Sheets OAuth2 API | All 5 Google Sheets tool nodes |
+| Google Docs OAuth2 API | FAQ_lookup |
 | Postgres | Postgres Chat Memory |
 
-### 5. Import the Workflow
+### 6. Import the Workflow
 
 1. In n8n go to **Workflows → Import from file**
 2. Select `workflow.json` from this repo
 3. Open each node that shows a credential warning and select your credential
 4. Update the `documentId` in each of the 5 Google Sheets tool nodes with your actual spreadsheet ID
+5. Update the `documentURL` in the `FAQ_lookup` node with your Google Doc URL
 
-### 6. Activate & Test
+### 7. Activate & Test
 
 1. Click **Activate** to publish the workflow
-2. Open Telegram and send your bot a message — e.g. "hi" or "what tacos do you have?"
+2. Open Telegram and send your bot a message — e.g. "hi" or "what tacos do you have?" or "what time do you open?"
 
 ## Environment Variables
 
@@ -120,6 +141,7 @@ cp .env.example .env
 | allergen_check | Google Sheets Tool | Reads 14 allergens per item (YES/MAY/FREE) |
 | ingredients_lookup | Google Sheets Tool | Reads full ingredient declarations |
 | summary_lookup | Google Sheets Tool | Reads category summaries for filter queries |
+| FAQ_lookup | Google Docs Tool | Reads FAQ document for general restaurant questions |
 | Send a text message | Telegram | Sends the agent's reply back to the customer |
 
 ## System Prompt
@@ -140,11 +162,13 @@ The agent decides which tool(s) to call based on the customer's question:
 | Calories, macros, nutrition | `nutrition_lookup` |
 | Category browse ("what burritos?") | `menu_lookup` + `summary_lookup` |
 | Filter ("vegetarian options?") | `menu_lookup` + `summary_lookup` + `allergen_check` |
+| General restaurant info (hours, location, delivery…) | `FAQ_lookup` |
 | "Tell me everything" about an item | All four: menu + ingredients + allergen + nutrition |
 
 ## Notes
 
 - Chat memory is stored in Postgres and persists across n8n restarts (unlike in-memory buffers)
 - Each Telegram chat ID gets its own isolated conversation thread
-- All 5 tool nodes use manual descriptions — the agent knows exactly when to call each tool
-- The chat widget is Telegram-only — no web widget in this version
+- All tool nodes use manual descriptions — the agent knows exactly when to call each tool
+- The FAQ_lookup tool reads the entire Google Doc each time — keep the document concise for performance
+- The chat interface is Telegram-only — no web widget in this version
